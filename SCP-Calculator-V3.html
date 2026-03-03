@@ -241,6 +241,7 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
   <button class="nb" data-tab="tools" onclick="go('tools')"><span class="step">3</span>Tools &amp; Abrasives</button>
   <button class="nb" data-tab="order" onclick="go('order')"><span class="step">4</span>Order Quantities</button>
   <button class="nb" data-tab="labor" onclick="go('labor')"><span class="step">5</span>Project Estimate</button>
+  <button class="nb" data-tab="vars" onclick="go('vars')"><span class="step">6</span>Variable Inputs</button>
 </div></div>
 
 <!-- ═══ MODALS ═══ -->
@@ -506,6 +507,28 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
 </div>
 </div>
 
+
+<!-- ════════════════════ TAB 6: VARIABLE INPUTS ════════════════════ -->
+<div class="sec" id="s-vars">
+<div class="sh"><div class="step-label">Step 6 &mdash; Advanced</div><h2>Variable Inputs</h2><p>Adjust production rates and tool coverage to match your real-world conditions. All changes flow through machine hours, labor cost, tool quantities, and P&amp;L instantly.</p></div>
+
+<div class="cd">
+  <div class="ct ct-wide">
+    <div class="ct-left"><span class="ic ib">&#x26A1;</span> Machine Production Rates <span style="font-size:.72rem;color:var(--t3);font-family:'Source Sans Pro';text-transform:none;letter-spacing:0;margin-left:8px">(sqft / machine hour per step)</span></div>
+    <div class="ct-actions"><button class="hdr-btn sec" style="font-size:.65rem;padding:5px 12px" onclick="resetLaborRates()">Reset Defaults</button></div>
+  </div>
+  <div style="overflow-x:auto"><div id="laborRatesTable"></div></div>
+</div>
+
+<div class="cd">
+  <div class="ct ct-wide">
+    <div class="ct-left"><span class="ic iy">&#x1F527;</span> Tool Material Coverage <span style="font-size:.72rem;color:var(--t3);font-family:'Source Sans Pro';text-transform:none;letter-spacing:0;margin-left:8px">(sqft per physical tool)</span></div>
+    <div class="ct-actions"><button class="hdr-btn sec" style="font-size:.65rem;padding:5px 12px" onclick="resetToolDivisors()">Reset Defaults</button></div>
+  </div>
+  <div style="overflow-x:auto"><div id="toolCoverageTable"></div></div>
+</div>
+</div>
+
 </div><!-- /mc -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -577,6 +600,12 @@ let hoursPerDay = 8;
 let crew = [30, 25, 18];
 let currentTab = 'setup';
 
+// Mutable copies of defaults — editable via Variable Inputs tab
+let laborRates = {};
+Object.keys(laborDivisors).forEach(id => { laborRates[id] = [...laborDivisors[id]]; });
+let toolDivisors = {};
+tools.forEach(item => { toolDivisors[item.id] = item.divisor; });
+
 const state = {
   toggles: {},
   addOns: {},
@@ -617,7 +646,7 @@ function computeAll() {
   allItems.forEach(item => {
     const on = item.alwaysOn || state.toggles[item.id];
     const isTool = item.type === 'tool';
-    const baseQty = on ? sqft / item.divisor : 0;
+    const baseQty = on ? sqft / (isTool ? (toolDivisors[item.id] || item.divisor) : item.divisor) : 0;
     const qty = baseQty;
     const addOn = state.addOns[item.id] || 0;
     const uc = state.unitCosts[item.id];
@@ -664,7 +693,7 @@ function computeAll() {
   const steps = [];
   tools.forEach(item => {
     if (state.toggles[item.id] && laborDivisors[item.id]) {
-      const stepMachHrs = sqft / laborDivisors[item.id][machIdx];
+      const stepMachHrs = sqft / ((laborRates[item.id] && laborRates[item.id][machIdx]) || laborDivisors[item.id][machIdx] || 1);
       totalMachHours += stepMachHrs;
       steps.push({ id:item.id, name:item.name, color:item.color, machHrs:stepMachHrs });
     }
@@ -1008,6 +1037,61 @@ function updateDisplay(r) {
   document.getElementById('stepTB').innerHTML = tb;
 }
 
+function buildVariableInputs() {
+  const colorMap2 = {orange:'var(--o)', green:'var(--g)', yellow:'var(--y)', red:'var(--r)', blue:'var(--b)'};
+
+  // ── Card 1: Machine Production Rates ──
+  let lh = '<table class="dt"><thead><tr>';
+  lh += '<th style="text-align:left">Process Step</th>';
+  lh += '<th style="color:var(--b)">WE-2795 Leonidas<br><span style="font-size:.7rem;font-weight:400;color:var(--t3)">sqft / mach hr</span></th>';
+  lh += '<th style="color:var(--t)">8\' Power Trowel<br><span style="font-size:.7rem;font-weight:400;color:var(--t3)">sqft / mach hr</span></th>';
+  lh += '</tr></thead><tbody>';
+  let lastCat = '';
+  tools.forEach(item => {
+    if (!laborDivisors[item.id]) return;
+    const dotC = colorMap2[item.color] || 'var(--t3)';
+    if (item.cat !== lastCat) {
+      lastCat = item.cat;
+      lh += '<tr class="cat-row"><td colspan="3" style="color:' + dotC + '">' + item.cat + '</td></tr>';
+    }
+    const def = laborDivisors[item.id];
+    const cur = laborRates[item.id] || def;
+    const changed0 = cur[0] !== def[0], changed1 = cur[1] !== def[1];
+    lh += '<tr>';
+    lh += '<td style="text-align:left"><div class="item-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + dotC + ';flex-shrink:0"></span><span>' + item.name + '</span></div></td>';
+    lh += '<td><input class="tbl-input" type="number" value="' + cur[0] + '" min="1" step="50" style="width:100px' + (changed0 ? ';border-color:var(--o);color:var(--o)' : '') + '" oninput="setLaborRate(\'' + item.id + '\',0,this.value)" placeholder="' + def[0] + '"><span style="font-size:.7rem;color:var(--t3);margin-left:6px">def: ' + def[0].toLocaleString() + '</span></td>';
+    lh += '<td><input class="tbl-input" type="number" value="' + cur[1] + '" min="1" step="100" style="width:100px' + (changed1 ? ';border-color:var(--o);color:var(--o)' : '') + '" oninput="setLaborRate(\'' + item.id + '\',1,this.value)" placeholder="' + def[1] + '"><span style="font-size:.7rem;color:var(--t3);margin-left:6px">def: ' + def[1].toLocaleString() + '</span></td>';
+    lh += '</tr>';
+  });
+  lh += '</tbody></table>';
+  document.getElementById('laborRatesTable').innerHTML = lh;
+
+  // ── Card 2: Tool Material Coverage ──
+  let th = '<table class="dt"><thead><tr>';
+  th += '<th style="text-align:left">Tool</th>';
+  th += '<th style="color:var(--o)">Sqft per Tool</th>';
+  th += '<th style="color:var(--t3)">Default</th>';
+  th += '</tr></thead><tbody>';
+  lastCat = '';
+  tools.forEach(item => {
+    const dotC = colorMap2[item.color] || 'var(--t3)';
+    if (item.cat !== lastCat) {
+      lastCat = item.cat;
+      th += '<tr class="cat-row"><td colspan="3" style="color:' + dotC + '">' + item.cat + '</td></tr>';
+    }
+    const def = item.divisor;
+    const cur = toolDivisors[item.id] || def;
+    const changed = cur !== def;
+    th += '<tr>';
+    th += '<td style="text-align:left"><div class="item-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + dotC + ';flex-shrink:0"></span><span>' + item.name + '</span></div></td>';
+    th += '<td><input class="tbl-input" type="number" value="' + cur + '" min="1" step="1" style="width:100px' + (changed ? ';border-color:var(--o);color:var(--o)' : '') + '" oninput="setToolDivisor(\'' + item.id + '\',this.value)"></td>';
+    th += '<td style="color:var(--t3);font-size:.85rem">' + def.toLocaleString() + ' sqft</td>';
+    th += '</tr>';
+  });
+  th += '</tbody></table>';
+  document.getElementById('toolCoverageTable').innerHTML = th;
+}
+
 function recalc() {
   const r = computeAll();
   updateDisplay(r);
@@ -1025,6 +1109,21 @@ function go(id) {
     b.classList.toggle('ac', b.dataset.tab === id);
   });
   recalc();
+}
+
+function setLaborRate(id, machIdx, val) {
+  if (!laborRates[id]) laborRates[id] = [...laborDivisors[id]];
+  laborRates[id][machIdx] = Math.max(1, parseFloat(val) || 1);
+  recalc();
+}
+function setToolDivisor(id, val) { toolDivisors[id] = Math.max(1, parseFloat(val) || 1); recalc(); }
+function resetLaborRates() {
+  Object.keys(laborDivisors).forEach(id => { laborRates[id] = [...laborDivisors[id]]; });
+  buildVariableInputs(); recalc();
+}
+function resetToolDivisors() {
+  tools.forEach(item => { toolDivisors[item.id] = item.divisor; });
+  buildVariableInputs(); recalc();
 }
 
 function toggleItem(id, checked) { state.toggles[id] = checked; recalc(); }
@@ -1086,6 +1185,8 @@ function getProjectState() {
     jfDepth: document.getElementById('jfDepth').value,
     jfWaste: document.getElementById('jfWaste').value,
     jfCostPerGal: document.getElementById('jfCostPerGal').value,
+    laborRates: JSON.parse(JSON.stringify(laborRates)),
+    toolDivisors: {...toolDivisors},
     savedAt: new Date().toISOString(),
   };
 }
@@ -1111,7 +1212,9 @@ function loadProjectState(data) {
   if (data.jfDepth) document.getElementById('jfDepth').value = data.jfDepth;
   if (data.jfWaste) document.getElementById('jfWaste').value = data.jfWaste;
   if (data.jfCostPerGal) document.getElementById('jfCostPerGal').value = data.jfCostPerGal;
-  buildChemTable(); buildToolsTable(); buildOrderTable(); buildOtherTable();
+  if (data.laborRates) Object.keys(data.laborRates).forEach(id => { laborRates[id] = [...data.laborRates[id]]; });
+  if (data.toolDivisors) Object.assign(toolDivisors, data.toolDivisors);
+  buildChemTable(); buildToolsTable(); buildOrderTable(); buildOtherTable(); buildVariableInputs();
   calcJointFill();
   if (data.tab) go(data.tab === 'basic' ? 'setup' : data.tab);
   recalc();
@@ -1389,6 +1492,7 @@ buildChemTable();
 buildToolsTable();
 buildOrderTable();
 buildOtherTable();
+buildVariableInputs();
 recalc();
 </script>
 </body>
