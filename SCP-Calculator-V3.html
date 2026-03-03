@@ -693,7 +693,8 @@ function computeAll() {
   const steps = [];
   tools.forEach(item => {
     if (state.toggles[item.id] && laborDivisors[item.id]) {
-      const stepMachHrs = sqft / ((laborRates[item.id] && laborRates[item.id][machIdx]) || laborDivisors[item.id][machIdx] || 1);
+      const _lr = laborRates[item.id];
+      const stepMachHrs = sqft / ((_lr != null && _lr[machIdx] != null ? _lr[machIdx] : laborDivisors[item.id][machIdx]) || 1);
       totalMachHours += stepMachHrs;
       steps.push({ id:item.id, name:item.name, color:item.color, machHrs:stepMachHrs });
     }
