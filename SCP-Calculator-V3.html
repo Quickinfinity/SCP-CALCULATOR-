@@ -214,6 +214,36 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
   .g3{grid-template-columns:1fr 1fr}
   .g5{grid-template-columns:repeat(3,1fr)}
 }
+/* ═══ CONTRACT TAB ═══ */
+.contract-settings-panel{margin-bottom:16px}
+.contract-print-bar{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.contract-wrap{background:#c8c8c8;padding:28px 20px;border-radius:6px;margin-top:16px}
+.cdoc{background:#fff;color:#111;font-family:'Georgia',serif;padding:48px 56px;max-width:800px;margin:0 auto;line-height:1.6;font-size:.88rem;box-shadow:0 2px 12px rgba(0,0,0,.28)}
+.cdoc h2,.cdoc .section-head{text-align:center;letter-spacing:2px;text-transform:uppercase;font-size:1.05rem;font-weight:700;margin:0 0 6px;padding-bottom:8px;border-bottom:2px solid #111}
+.cdoc .pnum{text-align:right;font-size:.78rem;margin-bottom:10px}
+.cdoc .addr{font-size:.85rem;margin:14px 0;line-height:1.7}
+.cdoc .stitle{font-size:.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:18px 0 6px;border-bottom:1px solid #333;padding-bottom:3px}
+.cdoc .scope-text{margin:8px 0;font-size:.85rem}
+.cdoc table.ptbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:.83rem}
+.cdoc table.ptbl td{padding:5px 6px;border-bottom:1px solid #e0e0e0}
+.cdoc table.ptbl td:last-child{text-align:right;white-space:nowrap}
+.cdoc table.ptbl tr.total-row td{font-weight:700;border-top:2px solid #111;border-bottom:2px solid #111;font-size:.88rem}
+.cdoc .accept-block{border:1px solid #ccc;padding:14px;margin:14px 0;font-size:.83rem;font-style:italic;background:#f8f8f8}
+.cdoc .sig-row{display:flex;gap:48px;margin-top:22px}
+.cdoc .sig-field{flex:1;border-bottom:1px solid #333;padding-top:30px;font-size:.76rem;color:#555;font-style:normal}
+.cdoc ol,.cdoc ul{padding-left:20px;font-size:.83rem;margin:6px 0}
+.cdoc li{margin-bottom:4px}
+.cdoc .page-break-line{border:none;border-top:3px double #111;margin:28px 0}
+.cdoc .warranty-box{border:1px solid #ccc;padding:14px;margin:10px 0;font-size:.82rem;background:#fafafa}
+.cdoc p{font-size:.85rem;margin:6px 0}
+@media print{
+  .contract-settings-panel,.hdr,.nav,.sg4,.sh,.hdr-actions,.modal-overlay{display:none!important}
+  .sec:not(.ac){display:none!important}
+  .contract-wrap{background:#fff!important;padding:0!important}
+  .cdoc{box-shadow:none!important;padding:0!important;max-width:none!important}
+  .mc{padding:0!important}
+  body,html{background:#fff!important}
+}
 </style>
 </head>
 <body>
@@ -245,6 +275,7 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
   <button class="nb" data-tab="order" onclick="go('order')"><span class="step">4</span>Order Quantities</button>
   <button class="nb" data-tab="labor" onclick="go('labor')"><span class="step">5</span>Project Estimate</button>
   <button class="nb" data-tab="vars" onclick="go('vars')"><span class="step">6</span>Variable Inputs</button>
+  <button class="nb" data-tab="contract" onclick="go('contract')"><span class="step">7</span>Contract</button>
 </div></div>
 
 <!-- ═══ MODALS ═══ -->
@@ -540,6 +571,56 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
     <div class="ct-actions"><button class="hdr-btn sec" style="font-size:.65rem;padding:5px 12px" onclick="resetToolDivisors()">Reset Defaults</button></div>
   </div>
   <div style="overflow-x:auto"><div id="toolCoverageTable"></div></div>
+</div>
+</div>
+
+<!-- ════════════════════ TAB 7: CONTRACT ════════════════════ -->
+<div class="sec" id="s-contract">
+<div class="sh"><div class="step-label">Step 7 &mdash; Proposal</div><h2>Contract / Proposal</h2><p>Fill in your company and customer details. The contract auto-populates from your calculator inputs.</p></div>
+
+<div class="contract-settings-panel">
+<div class="g2">
+  <div class="cd">
+    <div class="ct"><span class="ic io">&#x1F3E2;</span> Your Company <span style="font-size:.7rem;color:var(--t3);margin-left:6px;font-family:'Source Sans Pro';font-weight:400;text-transform:none;letter-spacing:0">(saved across projects)</span></div>
+    <div class="form-group"><label>Company Name</label><input type="text" id="co_name" placeholder="Your Company Name" oninput="saveCompanySettings()"></div>
+    <div class="form-group"><label>Address</label><input type="text" id="co_address" placeholder="City, State ZIP" oninput="saveCompanySettings()"></div>
+    <div class="g2" style="gap:8px">
+      <div class="form-group"><label>Phone</label><input type="tel" id="co_phone" placeholder="(000) 000-0000" oninput="saveCompanySettings()"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="co_email" placeholder="your@company.com" oninput="saveCompanySettings()"></div>
+    </div>
+  </div>
+  <div class="cd">
+    <div class="ct"><span class="ic ib">&#x1F4CB;</span> Customer &amp; Proposal Info</div>
+    <div class="g2" style="gap:8px">
+      <div class="form-group"><label>Proposal #</label><input type="text" id="ct_propNum" placeholder="e.g. 26-1001" oninput="buildContract()"></div>
+      <div class="form-group"><label>Deposit %</label><input type="number" id="ct_deposit" value="50" min="1" max="100" step="1" oninput="buildContract()"></div>
+    </div>
+    <div class="form-group"><label>Customer Name</label><input type="text" id="ct_custName" placeholder="First Last" oninput="buildContract()"></div>
+    <div class="form-group"><label>Company</label><input type="text" id="ct_custCompany" placeholder="Customer Company Name" oninput="buildContract()"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="ct_custEmail" placeholder="customer@email.com" oninput="buildContract()"></div>
+    <div class="form-group"><label>Address</label><input type="text" id="ct_custAddress" placeholder="Street, City, State ZIP" oninput="buildContract()"></div>
+  </div>
+</div>
+<div class="g2" style="margin-top:0">
+  <div class="cd" style="padding:14px 18px">
+    <div class="ct" style="margin-bottom:10px"><span class="ic ig">&#x1F4C5;</span> Project Details</div>
+    <div class="form-group"><label>Project / Site Name</label><input type="text" id="ct_projName" placeholder="e.g. Acme Warehouse &mdash; Cleveland, OH" oninput="buildContract()"></div>
+    <div class="g2" style="gap:8px">
+      <div class="form-group"><label>Start Date</label><input type="date" id="ct_startDate" oninput="buildContract()"></div>
+      <div class="form-group"><label>End Date (Est.)</label><input type="date" id="ct_endDate" oninput="buildContract()"></div>
+    </div>
+  </div>
+  <div class="cd" style="padding:14px 18px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+    <button class="hdr-btn" style="font-size:.88rem;padding:12px 28px;background:var(--o);color:#111;font-weight:700;border-color:var(--o);align-self:flex-start" onclick="printContract()">&#x1F5A8;&nbsp; Print / Save as PDF</button>
+    <div style="font-size:.75rem;color:var(--t3);line-height:1.5">Opens a print-ready version in a new tab.<br>Use &ldquo;Save as PDF&rdquo; in your print dialog.</div>
+  </div>
+</div>
+</div>
+
+<div class="contract-wrap">
+  <div class="cdoc" id="contractDoc">
+    <p style="color:#888;text-align:center;font-family:sans-serif;font-size:.85rem;padding:40px 0">Contract preview will appear here &mdash; navigate to Tab 7 to generate.</p>
+  </div>
 </div>
 </div>
 
@@ -1125,9 +1206,11 @@ function buildVariableInputs() {
   document.getElementById('toolCoverageTable').innerHTML = th;
 }
 
+let lastResult = null;
 function recalc() {
-  const r = computeAll();
-  updateDisplay(r);
+  lastResult = computeAll();
+  updateDisplay(lastResult);
+  if (currentTab === 'contract') buildContract();
 }
 
 // ══════════════════════════════════════
@@ -1224,6 +1307,15 @@ function getProjectState() {
     hydroChargePSF: document.getElementById('hydroChargePSF').value,
     mppCharge: document.getElementById('mppCharge').value,
     repairsCharge: document.getElementById('repairsCharge').value,
+    ct_propNum: document.getElementById('ct_propNum').value,
+    ct_custName: document.getElementById('ct_custName').value,
+    ct_custCompany: document.getElementById('ct_custCompany').value,
+    ct_custEmail: document.getElementById('ct_custEmail').value,
+    ct_custAddress: document.getElementById('ct_custAddress').value,
+    ct_projName: document.getElementById('ct_projName').value,
+    ct_startDate: document.getElementById('ct_startDate').value,
+    ct_endDate: document.getElementById('ct_endDate').value,
+    ct_deposit: document.getElementById('ct_deposit').value,
     laborRates: JSON.parse(JSON.stringify(laborRates)),
     toolDivisors: {...toolDivisors},
     savedAt: new Date().toISOString(),
@@ -1257,6 +1349,15 @@ function loadProjectState(data) {
   if (data.hydroChargePSF) document.getElementById('hydroChargePSF').value = data.hydroChargePSF;
   if (data.mppCharge) document.getElementById('mppCharge').value = data.mppCharge;
   if (data.repairsCharge) document.getElementById('repairsCharge').value = data.repairsCharge;
+  if (data.ct_propNum)    document.getElementById('ct_propNum').value    = data.ct_propNum;
+  if (data.ct_custName)   document.getElementById('ct_custName').value   = data.ct_custName;
+  if (data.ct_custCompany)document.getElementById('ct_custCompany').value= data.ct_custCompany;
+  if (data.ct_custEmail)  document.getElementById('ct_custEmail').value  = data.ct_custEmail;
+  if (data.ct_custAddress)document.getElementById('ct_custAddress').value= data.ct_custAddress;
+  if (data.ct_projName)   document.getElementById('ct_projName').value   = data.ct_projName;
+  if (data.ct_startDate)  document.getElementById('ct_startDate').value  = data.ct_startDate;
+  if (data.ct_endDate)    document.getElementById('ct_endDate').value    = data.ct_endDate;
+  if (data.ct_deposit)    document.getElementById('ct_deposit').value    = data.ct_deposit;
   if (data.laborRates) Object.keys(data.laborRates).forEach(id => { laborRates[id] = [...data.laborRates[id]]; });
   if (data.toolDivisors) Object.assign(toolDivisors, data.toolDivisors);
   buildChemTable(); buildToolsTable(); buildOrderTable(); buildOtherTable(); buildVariableInputs();
@@ -1527,6 +1628,240 @@ function generatePDF() {
 }
 
 // ══════════════════════════════════════
+// SECTION 8B: CONTRACT / PROPOSAL
+// ══════════════════════════════════════
+
+function loadCompanySettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('scp_company') || '{}');
+    if (s.name)    document.getElementById('co_name').value    = s.name;
+    if (s.address) document.getElementById('co_address').value = s.address;
+    if (s.phone)   document.getElementById('co_phone').value   = s.phone;
+    if (s.email)   document.getElementById('co_email').value   = s.email;
+  } catch(e) {}
+}
+
+function saveCompanySettings() {
+  localStorage.setItem('scp_company', JSON.stringify({
+    name:    document.getElementById('co_name').value,
+    address: document.getElementById('co_address').value,
+    phone:   document.getElementById('co_phone').value,
+    email:   document.getElementById('co_email').value,
+  }));
+  buildContract();
+}
+
+function buildContract() {
+  const el = document.getElementById('contractDoc');
+  if (!el || !lastResult) return;
+  const r = lastResult;
+
+  const coName    = document.getElementById('co_name').value    || '[COMPANY NAME]';
+  const coAddress = document.getElementById('co_address').value || '';
+  const coPhone   = document.getElementById('co_phone').value   || '';
+  const coEmail   = document.getElementById('co_email').value   || '';
+
+  const propNum    = document.getElementById('ct_propNum').value    || '—';
+  const custName   = document.getElementById('ct_custName').value   || '[CUSTOMER NAME]';
+  const custCo     = document.getElementById('ct_custCompany').value|| '';
+  const custEmail  = document.getElementById('ct_custEmail').value  || '';
+  const custAddr   = document.getElementById('ct_custAddress').value|| '';
+  const projName   = document.getElementById('ct_projName').value   || '[PROJECT NAME]';
+  const startDate  = document.getElementById('ct_startDate').value  || '';
+  const endDate    = document.getElementById('ct_endDate').value    || '';
+  const depositPct = Math.max(1, parseInt(document.getElementById('ct_deposit').value) || 50);
+
+  const hydroRate   = Math.max(0, parseFloat(document.getElementById('hydroChargePSF').value) || 0);
+  const jfRate      = Math.max(0, parseFloat(document.getElementById('jfChargePerLF').value)  || 0);
+  const jfLF        = Math.max(0, parseFloat(document.getElementById('jfLengthSetup').value)  || 0);
+  const borderLF    = Math.max(0, parseFloat(document.getElementById('borderLF').value)        || 0);
+  const borderRate  = Math.max(0, parseFloat(document.getElementById('borderChargePerLF').value)|| 0);
+  const mppFlat     = Math.max(0, parseFloat(document.getElementById('mppCharge').value)       || 0);
+  const repFlat     = Math.max(0, parseFloat(document.getElementById('repairsCharge').value)   || 0);
+
+  const depositAmt = r.bid * (depositPct / 100);
+
+  const fmtDate = (d) => {
+    if (!d) return 'TBD';
+    const dt = new Date(d + 'T12:00:00');
+    return dt.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+  };
+
+  // Dynamic scope of work
+  let scopeHtml = '<p class="scope-text">STRIP, GRIND, POLISH' + (hydroRate > 0 ? ', HYDROPOLISH' : '') + ', SEAL, and BURNISH warehouse concrete to produce the SCIENTIFIC CONCRETE POLISHING\u00ae Flooring System.</p>';
+  if (jfRate > 0) scopeHtml += '<p class="scope-text">FILL JOINTS with MATCH PATCH PRO\u2122 Polyurea Joint Fill.</p>';
+  if (borderLF > 0) scopeHtml += '<p class="scope-text">APPLY Colored Borders (6&rdquo;&ndash;12&rdquo;) to outside wall edges and unpolishable areas.</p>';
+  if (mppFlat > 0) scopeHtml += '<p class="scope-text">MATCH PATCH PRO\u2122 application included per agreed scope.</p>';
+  if (repFlat > 0) scopeHtml += '<p class="scope-text">REPAIRS / UPGRADES per agreed scope.</p>';
+  else scopeHtml += '<p class="scope-text"><em>*Repairs TBD &mdash; subject to site inspection and mutual written agreement.</em></p>';
+  scopeHtml += '<p class="scope-text" style="font-size:.8rem;color:#555">*See attachments for Process Overview, GC Checklist, Qualifications, and Conditions.</p>';
+
+  // Dynamic pricing rows
+  let priceRows = `<tr><td>SCP Polish &mdash; ${r.sqft.toLocaleString()} sq ft @ $${r.charge.toFixed(2)}/sq ft</td><td>${fmt(r.bidPolish)}</td></tr>`;
+  if (hydroRate > 0)  priceRows += `<tr><td>HydroPolish &mdash; ${r.sqft.toLocaleString()} sq ft @ $${hydroRate.toFixed(2)}/sq ft</td><td>${fmt(r.bidHydro)}</td></tr>`;
+  if (jfRate > 0)     priceRows += `<tr><td>MPP Joint Fill &mdash; ${jfLF.toLocaleString()} LF @ $${jfRate.toFixed(2)}/LF</td><td>${fmt(r.bidJointFill)}</td></tr>`;
+  if (borderLF > 0)   priceRows += `<tr><td>Colored Borders &mdash; ${borderLF.toLocaleString()} LF @ $${borderRate.toFixed(2)}/LF</td><td>${fmt(r.bidBorders)}</td></tr>`;
+  if (mppFlat > 0)    priceRows += `<tr><td>Match Patch Pro</td><td>${fmt(r.bidMPP)}</td></tr>`;
+  if (repFlat > 0)    priceRows += `<tr><td>Repairs / Upgrades</td><td>${fmt(r.bidRepairs)}</td></tr>`;
+  priceRows += `<tr class="total-row"><td><strong>PROJECT TOTAL</strong></td><td><strong>${fmt(r.bid)}</strong></td></tr>`;
+
+  const estDays = r.calendarDays > 0 ? Math.ceil(r.calendarDays) : 'TBD';
+
+  el.innerHTML = `
+<h2>Proposal / Purchase Agreement</h2>
+<p class="pnum"><strong># ${propNum}</strong></p>
+
+<div class="addr">
+  <strong>ATTN:</strong> ${custName}${custEmail ? ' &nbsp;&bull;&nbsp; ' + custEmail : ''}<br>
+  ${custCo ? custCo + '<br>' : ''}${custAddr ? custAddr + '<br>' : ''}
+  <br><strong>PROJECT:</strong> ${projName}
+</div>
+
+<div class="stitle">Scope of Work</div>
+${scopeHtml}
+
+<div class="stitle">Pricing &mdash; Minimum Area: ${r.sqft.toLocaleString()} Square Feet</div>
+<table class="ptbl"><tbody>${priceRows}</tbody></table>
+<p><em>*Pricing based on ${r.sqft.toLocaleString()} sq ft minimum. Final cost confirmed after site measurement.</em></p>
+<p><em>*${depositPct}% deposit of <strong>${fmt(depositAmt)}</strong> required upon signed acceptance.</em></p>
+<p style="margin-top:10px"><strong>Project Dates:</strong> ${fmtDate(startDate)} &mdash; ${fmtDate(endDate)} &nbsp;&nbsp;&nbsp; <strong>TOTAL: ${fmt(r.bid)}</strong></p>
+
+<div class="stitle">Acceptance of Proposal</div>
+<div class="accept-block">By accepting this Proposal, the Customer authorizes ${coName} to perform the work as specified above, to make payment to ${coName} as required, and expressly accepts and agrees to be bound by all the attached Terms and Conditions.</div>
+<div class="sig-row">
+  <div class="sig-field">Customer&rsquo;s Signature</div>
+  <div class="sig-field">Date</div>
+</div>
+
+<hr class="page-break-line">
+
+<div class="section-head">Process Overview</div>
+<p class="pnum"><strong># ${propNum}</strong></p>
+<ol>
+  <li>Approval of Sample Mock Up / Proposal / Purchase Agreement.</li>
+  <li>&ldquo;Contractor/Owner&rdquo; to read, sign, and return documents with ${depositPct}% deposit.</li>
+  <li style="list-style:none;padding-left:.5em">2a. Project-site qualifications reviewed and site prepared for scheduled work.</li>
+  <li>Schedule project start date, a minimum of (4) weeks in advance. Change of schedule issued by &ldquo;Contractor/Owner&rdquo; is subject to ${coName}&rsquo;s next availability.</li>
+  <li>Scope of Work completed by ${coName} and approved by &ldquo;Contractor/Owner.&rdquo;</li>
+  <li>Final Invoice issued.</li>
+  <li>Final Payment, Net 30, received.</li>
+</ol>
+
+<hr class="page-break-line">
+
+<div class="section-head">GC Checklist &amp; Project-Site Qualifications</div>
+<p class="pnum"><strong># ${propNum}</strong></p>
+<p>The following qualifications should be addressed PRE &amp; POST installation of the Scientific Concrete Polishing\u00ae System by ${coName}. If any requirements cannot be met, please contact ${coName} to discuss alternatives.</p>
+
+<div class="stitle">Pre-Installation</div>
+<ol>
+  <li>Worksite should be free from all construction debris prior to ${coName}&rsquo;s arrival.</li>
+  <li>Worksite should be swept and in &ldquo;clean&rdquo; condition.</li>
+  <li>Worksite should be clear of ALL other trades and workers. ${coName} must have sole access to its work areas.</li>
+  <li>Worksite should provide access for trucks, generators, and trailers to safely back up to a loading area to adequately unload large equipment and machines.</li>
+  <li>Worksite should provide reasonable access to water, with a hose bib no more than 100 ft from worksite. If water is not available on-site, ${coName} may supply its own water source; a reasonable fee for transportation and set-up may apply.</li>
+  <li>GC, owner, or qualified project manager must approve and sign acceptance of scope. (Approval requested 7&ndash;10 days before project start.)</li>
+  <li>All hydraulic lifts should be diapered to prevent oil stains.</li>
+  <li>Roll-off dumpster to be provided by &ldquo;Contractor/Owner&rdquo; and placed near worksite access door, in an area where water run-off will not discolor new pavement.</li>
+</ol>
+
+<div class="stitle">Post-Installation</div>
+<ol>
+  <li>If covering the final polished concrete, use only breathable materials (cardboard, construction paper, RAMboard, FloorShield, etc.). <strong>DO NOT COVER WITH PLASTIC.</strong></li>
+  <li><strong>DO NOT</strong> allow acids to contact the polished concrete. For spills, clean immediately and inspect for damage. HydroPolish increases acid resistance.</li>
+  <li><strong>DO</strong> use a neutral pH cleaner (such as SCP Fortifier Cleaner) in an auto floor scrubber with medium or soft brushes for regular maintenance.</li>
+</ol>
+
+<hr class="page-break-line">
+
+<div class="section-head">Conditions</div>
+<p class="pnum"><strong># ${propNum}</strong></p>
+<ul>
+  <li>Provisions will be made to minimize and contain dust and residuals. Residual dust will remain and require cleanup unless otherwise discussed.</li>
+  <li>The area to be worked on will be cleared and ready for work to begin on the agreed date and time.</li>
+  <li>Total time to complete the project will be approximately ${estDays} workdays. Consideration for inclement weather may be needed.</li>
+  <li>A pre-start meeting will take place regarding availability of utilities, disposal, and any special requests.</li>
+  <li>Any additional work not agreed upon before contract will be subject to additional charges via signed change order.</li>
+  <li>Due to the nature of this work, actual working hours may extend beyond 8:00 AM&ndash;5:00 PM. Provisions should be made for employees to work irregular hours.</li>
+  <li>If the job is canceled after issuance of a purchase order, the GC/Owner is responsible for material restocking charges equal to 40% of material cost.</li>
+  <li>It is the GC/Owner&rsquo;s responsibility to have work areas cleared of all moveable objects. A start-up delay caused by GC/Owner may result in delayed completion and additional travel charges.</li>
+  <li>Proper room ventilation, dust enclosures, and protection of in-place equipment are the GC/Owner&rsquo;s responsibility.</li>
+  <li>GC/Owner must disclose all chemical or hazardous contamination in the work area (including asbestos, acids, solvents, PCB-contaminated oil) and ensure all chemical piping is secure and leak-free.</li>
+  <li>All removable drain covers will be removed and set aside; GC/Owner is responsible for reinstallation. Non-removable covers will be protected in place.</li>
+  <li>GC/Owner shall supply all grounded electrical power: 110V 20A standard outlets for mixing equipment; 3-Phase 480V on 30A drop cords for grinding equipment.</li>
+  <li>GC/Owner shall supply sufficient lighting, potable water, heat, traffic control, material/equipment storage area, restroom facilities, and any necessary security.</li>
+  <li>Construction debris, grinding refuse, and empty containers are to be disposed of by GC/Owner.</li>
+  <li>Water, oil, or other contaminants entering the application area during installation or cure will damage or stain the floor. Repair costs or job interruption caused by such contamination will be borne by GC/Owner.</li>
+  <li>Moisture readings must not exceed 3 lbs per 1,000 sq ft per 24 hr. vapor emission (ASTM F-1869).</li>
+  <li>${coName} is not responsible for damage caused by GC/Owner or their employees.</li>
+  <li>GC/Owner agrees to supply all needed permits and incur any associated costs.</li>
+  <li>The flooring system will follow the existing contour of the substrate unless otherwise noted in this quote.</li>
+  <li>${coName} warrants that coatings applied will not delaminate due to improper preparation or application for one (1) year. This warranty does not cover damage from substrate failure, moisture-related delamination, or severe or abnormal use.</li>
+  <li>Post-installation flooring must be cleaned using SCP Fortifier/Cleaner or a written-approval substitute. Failure to do so voids warranty. End users must be provided warranty information and required cleaning products.</li>
+  <li>Unless otherwise noted, all installations are final and do not include re-mobilization. Post-installation return visits require a signed change order.</li>
+  <li>Any change in terms and conditions after contract agreement requires a written change order signed by both parties.</li>
+  <li>Moisture tests available upon request with 14 days&rsquo; notice ($60.00 each).</li>
+</ul>
+<div class="stitle">Turn Over</div>
+<p>The space in which the above contracted services are to be performed shall be exclusively turned over to ${coName}. No persons other than ${coName} employees shall occupy or enter the space without ${coName}&rsquo;s written consent, ensuring the floor remains contamination-free. If, during the turn-over phase, other contractors contaminate the substrate and floor preparation must be redone, it will be billed at $0.50 per square foot.</p>
+
+<div class="sig-row">
+  <div class="sig-field">Customer&rsquo;s Signature &mdash; I have read and agree to all qualifications, conditions, and terms above.</div>
+  <div class="sig-field">Date</div>
+</div>
+
+<hr class="page-break-line">
+
+<div class="section-head">5-Year Limited Warranty</div>
+<p class="pnum"><strong># ${propNum}</strong></p>
+<div class="stitle">Scientific Concrete Polishing\u00ae System Warranty</div>
+<div class="warranty-box">
+  <p>${coName} warrants to the owner, &ldquo;${projName},&rdquo; that the concrete surface described herein has been treated with the Scientific Concrete Polishing\u00ae System and, for a period of no less than five (5) years commencing the date of treatment, the surface will remain hardened, dustproof, and water-resistant. With proper care, this system will be sustainable for the lifetime of the substrate.</p>
+</div>
+<div class="stitle">Conditions</div>
+<p>This warranty applies to structurally sound concrete surfaces only when treated with the Scientific Concrete Polishing\u00ae System by a certified applicator and is void if concrete failure occurs due to improper design of the concrete, faulty workmanship, or failure of materials other than those used in the Scientific Concrete Polishing\u00ae System process. This warranty is void if maintenance specifications are not followed or if the surface is impaired or altered without written approval from Incredible Products, LLC and the certified applicator, ${coName}.</p>
+<div class="stitle">Limitations</div>
+<p>Incredible Products, LLC and the certified applicator, ${coName}, shall not be liable for any damage to the building, contents, other property, or persons; nor shall they be liable for incidental or consequential damages, whether based upon negligence or otherwise. The provisions of this warranty constitute the owner&rsquo;s exclusive remedy and will not be deemed in force until all obligations under the original application contract have been fulfilled.</p>
+<div class="sig-row">
+  <div class="sig-field">Certified Applicator&rsquo;s Signature</div>
+  <div class="sig-field">Date</div>
+</div>
+`;
+}
+
+function printContract() {
+  if (!lastResult) { alert('Run the calculator first (enter sqft and pricing), then return to Tab 7.'); return; }
+  buildContract();
+  const content = document.getElementById('contractDoc').innerHTML;
+  const propNum = document.getElementById('ct_propNum').value || '—';
+  const styles = `
+    body{margin:.75in;font-family:'Georgia',serif;font-size:11pt;line-height:1.6;color:#111}
+    h2,.section-head{text-align:center;text-transform:uppercase;letter-spacing:2px;font-size:12pt;font-weight:700;border-bottom:2pt solid #111;padding-bottom:6pt;margin:0 0 6pt}
+    .pnum{text-align:right;font-size:9pt;margin-bottom:10pt}
+    .addr{font-size:10pt;margin:12pt 0;line-height:1.7}
+    .stitle{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-bottom:1pt solid #333;padding-bottom:2pt;margin:14pt 0 6pt}
+    .scope-text{font-size:10pt;margin:6pt 0}
+    table.ptbl{width:100%;border-collapse:collapse;margin:10pt 0;font-size:10pt}
+    table.ptbl td{padding:4pt 5pt;border-bottom:1pt solid #ddd}
+    table.ptbl td:last-child{text-align:right;white-space:nowrap}
+    table.ptbl tr.total-row td{font-weight:700;border-top:2pt solid #111;border-bottom:2pt solid #111}
+    .accept-block{border:1pt solid #ccc;padding:10pt;margin:12pt 0;font-size:10pt;font-style:italic;background:#f8f8f8}
+    .sig-row{display:flex;gap:40pt;margin-top:18pt}
+    .sig-field{flex:1;border-bottom:1pt solid #333;padding-top:24pt;font-size:9pt;color:#555}
+    ol,ul{padding-left:16pt;font-size:10pt;margin:5pt 0}
+    li{margin-bottom:3pt}
+    .page-break-line{border:none;border-top:2pt double #111;margin:20pt 0;page-break-after:always}
+    .warranty-box{border:1pt solid #ccc;padding:10pt;font-size:10pt;background:#fafafa;margin:8pt 0}
+    p{font-size:10pt;margin:5pt 0}
+    @page{margin:.75in}
+  `;
+  const w = window.open('', '_blank', 'width=950,height=800');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>SCP Proposal #' + propNum + '</title><style>' + styles + '</style></head><body>' + content + '</body></html>');
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+// ══════════════════════════════════════
 // SECTION 9: INITIALIZATION
 // ══════════════════════════════════════
 
@@ -1538,6 +1873,7 @@ buildToolsTable();
 buildOrderTable();
 buildOtherTable();
 buildVariableInputs();
+loadCompanySettings();
 recalc();
 </script>
 </body>
