@@ -217,7 +217,16 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
 /* ═══ CONTRACT TAB ═══ */
 .contract-settings-panel{margin-bottom:16px}
 .contract-print-bar{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
-.contract-wrap{background:#c8c8c8;padding:28px 20px;border-radius:6px;margin-top:16px}
+.contract-wrap{background:#c8c8c8;padding:28px 20px;border-radius:6px;margin-top:16px;position:relative}
+.disclaimer-box{background:rgba(248,113,113,.07);border:2px solid rgba(248,113,113,.35);border-radius:8px;padding:18px 22px;margin-bottom:18px}
+.disclaimer-box .dc-title{font-family:'Oswald',sans-serif;font-size:.82rem;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;font-weight:700;margin-bottom:10px}
+.disclaimer-box p{font-size:.8rem;color:var(--t2);line-height:1.55;margin:0 0 10px}
+.disclaimer-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.8rem;color:var(--t);line-height:1.5;padding:10px 14px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.08)}
+.disclaimer-check input[type=checkbox]{width:16px;height:16px;margin-top:2px;flex-shrink:0;accent-color:#4ade80;cursor:pointer}
+.watermark-overlay{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5;overflow:hidden}
+.watermark-text{font-family:'Oswald',sans-serif;font-size:4.5rem;font-weight:700;color:rgba(239,68,68,.13);transform:rotate(-30deg);user-select:none;white-space:nowrap;letter-spacing:4px;text-align:center}
+.ct-textarea{width:100%;background:var(--c2);color:var(--t);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:8px 12px;font-family:inherit;font-size:.85rem;resize:vertical;box-sizing:border-box;min-height:72px}
+.ct-textarea:focus{outline:none;border-color:var(--o)}
 .cdoc{background:#fff;color:#111;font-family:'Georgia',serif;padding:48px 56px;max-width:800px;margin:0 auto;line-height:1.6;font-size:.88rem;box-shadow:0 2px 12px rgba(0,0,0,.28)}
 .cdoc h2,.cdoc .section-head{text-align:center;letter-spacing:2px;text-transform:uppercase;font-size:1.05rem;font-weight:700;margin:0 0 6px;padding-bottom:8px;border-bottom:2px solid #111}
 .cdoc .pnum{text-align:right;font-size:.78rem;margin-bottom:10px}
@@ -578,6 +587,16 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
 <div class="sec" id="s-contract">
 <div class="sh"><div class="step-label">Step 7 &mdash; Proposal</div><h2>Contract / Proposal</h2><p>Fill in your company and customer details. The contract auto-populates from your calculator inputs.</p></div>
 
+<div class="disclaimer-box">
+  <div class="dc-title">&#x26A0; Legal Disclaimer &mdash; Read Before Use</div>
+  <p>This contract template is provided as a <strong>starting point and example only</strong>. It is not legal advice and has not been reviewed or approved by an attorney. Incredible Products, LLC, Scientific Concrete Polishing&reg;, and the creators of this tool make <strong>no warranty, express or implied</strong>, regarding the legal sufficiency, enforceability, or fitness of this document for any purpose in any jurisdiction.</p>
+  <p>Contract law varies by state, project type, and circumstances. Before using this document in any commercial transaction, you should have it reviewed by a qualified attorney licensed in your jurisdiction. Language may need to be modified to comply with applicable laws.</p>
+  <label class="disclaimer-check">
+    <input type="checkbox" id="ct_disclaimer" onchange="checkDisclaimer()">
+    <span><strong>I understand this is a sample template only.</strong> I have read the disclaimer above, I accept full responsibility for reviewing this document with qualified legal counsel before use, and I assume all liability arising from its use. I agree that Incredible Products, LLC and the creators of this tool bear no responsibility for any legal outcome resulting from the use of this contract language.</span>
+  </label>
+</div>
+
 <div class="contract-settings-panel">
 <div class="g2">
   <div class="cd">
@@ -617,15 +636,24 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
         <div class="form-group"><label>Mock Up Sq Ft</label><input type="number" id="ct_mockupSqft" value="100" min="1" step="1" oninput="buildContract()"></div>
       </div>
     </div>
+    <div style="border-top:1px solid rgba(255,255,255,.08);margin-top:10px;padding-top:10px">
+      <div style="font-size:.72rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Editable Contract Language</div>
+      <div class="form-group"><label>Payment Terms</label><input type="text" id="ct_paymentTerms" value="Net 30" placeholder="Net 30" oninput="buildContract()"></div>
+      <div class="form-group"><label>Special Notes / Additional Conditions <span style="font-size:.72rem;color:var(--t3);font-weight:400">(appears as its own section if filled)</span></label><textarea id="ct_specialNotes" class="ct-textarea" rows="3" placeholder="Any special project conditions, exclusions, or notes to include in the contract..." oninput="buildContract()"></textarea></div>
+    </div>
   </div>
-  <div class="cd" style="padding:14px 18px;display:flex;flex-direction:column;justify-content:center;gap:10px">
-    <button class="hdr-btn" style="font-size:.88rem;padding:12px 28px;background:var(--o);color:#111;font-weight:700;border-color:var(--o);align-self:flex-start" onclick="printContract()">&#x1F5A8;&nbsp; Print / Save as PDF</button>
-    <div style="font-size:.75rem;color:var(--t3);line-height:1.5">Opens a print-ready version in a new tab.<br>Use &ldquo;Save as PDF&rdquo; in your print dialog.</div>
+  <div class="cd" style="padding:14px 18px;display:flex;flex-direction:column;justify-content:center;gap:12px">
+    <button class="hdr-btn" id="printContractBtn" style="font-size:.88rem;padding:12px 28px;background:var(--o);color:#111;font-weight:700;border-color:var(--o);align-self:flex-start;opacity:.4;cursor:not-allowed" onclick="printContract()" disabled>&#x1F5A8;&nbsp; Print / Save as PDF</button>
+    <div id="printBlockedMsg" style="font-size:.75rem;color:#f87171;line-height:1.5">Check the disclaimer above to enable printing.</div>
+    <div id="printReadyMsg" style="display:none;font-size:.75rem;color:var(--t3);line-height:1.5">Opens a print-ready version in a new tab.<br>Use &ldquo;Save as PDF&rdquo; in your print dialog.</div>
   </div>
 </div>
 </div>
 
 <div class="contract-wrap">
+  <div class="watermark-overlay" id="contractWatermark">
+    <div class="watermark-text">SAMPLE ONLY &mdash; NOT FOR USE</div>
+  </div>
   <div class="cdoc" id="contractDoc">
     <p style="color:#888;text-align:center;font-family:sans-serif;font-size:.85rem;padding:40px 0">Contract preview will appear here &mdash; navigate to Tab 7 to generate.</p>
   </div>
@@ -1328,6 +1356,8 @@ function getProjectState() {
     ct_mockupDate: document.getElementById('ct_mockupDate').value,
     ct_mockupPrice: document.getElementById('ct_mockupPrice').value,
     ct_mockupSqft: document.getElementById('ct_mockupSqft').value,
+    ct_paymentTerms: document.getElementById('ct_paymentTerms').value,
+    ct_specialNotes: document.getElementById('ct_specialNotes').value,
     laborRates: JSON.parse(JSON.stringify(laborRates)),
     toolDivisors: {...toolDivisors},
     savedAt: new Date().toISOString(),
@@ -1372,7 +1402,9 @@ function loadProjectState(data) {
   if (data.ct_deposit)     document.getElementById('ct_deposit').value     = data.ct_deposit;
   if (data.ct_mockupDate)  document.getElementById('ct_mockupDate').value  = data.ct_mockupDate;
   if (data.ct_mockupPrice) document.getElementById('ct_mockupPrice').value = data.ct_mockupPrice;
-  if (data.ct_mockupSqft)  document.getElementById('ct_mockupSqft').value  = data.ct_mockupSqft;
+  if (data.ct_mockupSqft)    document.getElementById('ct_mockupSqft').value    = data.ct_mockupSqft;
+  if (data.ct_paymentTerms)  document.getElementById('ct_paymentTerms').value  = data.ct_paymentTerms;
+  if (data.ct_specialNotes)  document.getElementById('ct_specialNotes').value  = data.ct_specialNotes;
   if (data.laborRates) Object.keys(data.laborRates).forEach(id => { laborRates[id] = [...data.laborRates[id]]; });
   if (data.toolDivisors) Object.assign(toolDivisors, data.toolDivisors);
   buildChemTable(); buildToolsTable(); buildOrderTable(); buildOtherTable(); buildVariableInputs();
@@ -1646,6 +1678,20 @@ function generatePDF() {
 // SECTION 8B: CONTRACT / PROPOSAL
 // ══════════════════════════════════════
 
+function checkDisclaimer() {
+  const ok = document.getElementById('ct_disclaimer').checked;
+  const btn = document.getElementById('printContractBtn');
+  const wm  = document.getElementById('contractWatermark');
+  const blocked = document.getElementById('printBlockedMsg');
+  const ready   = document.getElementById('printReadyMsg');
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '0.4';
+  btn.style.cursor  = ok ? 'pointer' : 'not-allowed';
+  wm.style.display  = ok ? 'none' : 'flex';
+  blocked.style.display = ok ? 'none' : 'block';
+  ready.style.display   = ok ? 'block' : 'none';
+}
+
 function loadCompanySettings() {
   try {
     const s = JSON.parse(localStorage.getItem('scp_company') || '{}');
@@ -1697,6 +1743,8 @@ function buildContract() {
   const mockupDate  = document.getElementById('ct_mockupDate').value  || '';
   const mockupPrice = Math.max(0, parseFloat(document.getElementById('ct_mockupPrice').value) || 0);
   const mockupSqft  = Math.max(1, parseInt(document.getElementById('ct_mockupSqft').value)   || 100);
+  const paymentTerms  = document.getElementById('ct_paymentTerms').value.trim() || 'Net 30';
+  const specialNotes  = document.getElementById('ct_specialNotes').value.trim();
 
   const depositAmt = r.bid * (depositPct / 100);
 
@@ -1790,7 +1838,7 @@ ${scopeHtml}
   <li>Sample Mock Up completed and approved by &ldquo;Contractor/Owner.&rdquo;</li>
   <li>Scope of Work completed by ${coName} and approved by &ldquo;Contractor/Owner.&rdquo;</li>
   <li>Final Invoice issued.</li>
-  <li>Final Payment, Net 30, received.</li>
+  <li>Final Payment, ${paymentTerms}, received.</li>
 </ol>
 
 <hr class="page-break-line">
@@ -1856,6 +1904,11 @@ ${scopeHtml}
   <div class="sig-field">Date</div>
 </div>
 
+${specialNotes ? `
+<div class="stitle">Special Notes &amp; Additional Conditions</div>
+<p style="white-space:pre-wrap">${specialNotes}</p>
+` : ''}
+
 <hr class="page-break-line">
 
 <div class="section-head">5-Year Limited Warranty</div>
@@ -1876,6 +1929,7 @@ ${scopeHtml}
 }
 
 function printContract() {
+  if (!document.getElementById('ct_disclaimer').checked) { alert('Please read and accept the legal disclaimer before printing.'); return; }
   if (!lastResult) { alert('Run the calculator first (enter sqft and pricing), then return to Tab 7.'); return; }
   buildContract();
   const content = document.getElementById('contractDoc').innerHTML;
