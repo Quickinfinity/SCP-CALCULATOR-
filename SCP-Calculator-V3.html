@@ -135,10 +135,13 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
 .other-table .tbl-input{width:100%}.other-table .tbl-input.desc{text-align:left;width:100%}
 
 /* ═══ SPECIAL LAYOUT CLASSES ═══ */
-.bid-card{display:flex;flex-direction:column;justify-content:center;align-items:center}
+.bid-card{display:flex;flex-direction:column;align-items:center}
 .bid-label{font-family:'Oswald',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
-.bid-value{font-family:'Oswald',sans-serif;font-size:2.8rem;font-weight:700;color:var(--o)}
-.bid-detail{font-size:.82rem;color:var(--t2);margin-top:6px}
+.bid-value{font-family:'Oswald',sans-serif;font-size:2.4rem;font-weight:700;color:var(--o)}
+.bid-lines{width:100%;margin-top:10px}
+.bid-line{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--t2);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.bid-line:last-child{border-bottom:none}
+.bid-line span:last-child{color:var(--t);font-weight:600}
 .crew-btn{flex:1;max-width:180px;padding:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:.75rem;cursor:pointer;letter-spacing:.5px;border-radius:6px}
 .crew-btn-add{background:rgba(46,204,64,.15);border:1px solid var(--g);color:var(--g)}
 .crew-btn-rm{background:rgba(231,76,60,.1);border:1px solid var(--r);color:var(--r)}
@@ -273,17 +276,28 @@ body{font-family:'Source Sans Pro',sans-serif;background:var(--bg);color:var(--t
 <div class="sec ac" id="s-setup">
 <div class="sh"><div class="step-label">Step 1 &mdash; Configure</div><h2>Project Setup</h2><p>Define the job scope, crew, and equipment. Everything flows from here.</p></div>
 
-<div class="g2">
+<div class="g3">
   <div class="cd">
     <div class="ct"><span class="ic io">&#x2699;</span> Project Inputs</div>
     <div class="form-group"><label>Square Feet</label><input type="number" id="sqft" value="20000" min="0" step="100" oninput="recalc()"></div>
     <div class="form-group"><label>Charge Per Sq Ft ($)</label><input type="number" id="chargePerSqft" value="2.50" min="0" step="0.01" oninput="recalc()"></div>
     <div class="form-group"><label>Linear Feet of Joints</label><input type="number" id="jfLengthSetup" value="0" min="0" step="1" oninput="syncJointFill(this.value)"></div>
   </div>
+  <div class="cd">
+    <div class="ct"><span class="ic ig">&#x2B;</span> Add-On Pricing</div>
+    <div class="form-group"><label>Joint Fill ($/LF)</label><input type="number" id="jfChargePerLF" value="0" min="0" step="0.01" placeholder="0.00" oninput="recalc()"></div>
+    <div class="g2" style="gap:8px">
+      <div class="form-group"><label>Border LF</label><input type="number" id="borderLF" value="0" min="0" step="1" placeholder="0" oninput="recalc()"></div>
+      <div class="form-group"><label>Border ($/LF)</label><input type="number" id="borderChargePerLF" value="0" min="0" step="0.01" placeholder="0.00" oninput="recalc()"></div>
+    </div>
+    <div class="form-group"><label>Hydro Polish ($/sq ft)</label><input type="number" id="hydroChargePSF" value="0" min="0" step="0.01" placeholder="0.00" oninput="recalc()"></div>
+    <div class="form-group"><label>Match Patch Pro ($)</label><input type="number" id="mppCharge" value="0" min="0" step="1" placeholder="0.00" oninput="recalc()"></div>
+    <div class="form-group"><label>Repairs / Upgrades ($)</label><input type="number" id="repairsCharge" value="0" min="0" step="1" placeholder="0.00" oninput="recalc()"></div>
+  </div>
   <div class="cd bid-card">
     <div class="bid-label">Project Bid</div>
     <div class="bid-value" id="projectBid">$50,000.00</div>
-    <div class="bid-detail"><span id="bidSqft">20,000</span> sq ft &times; $<span id="bidRate">2.50</span> / sq ft</div>
+    <div class="bid-lines" id="bidLines"></div>
   </div>
 </div>
 
@@ -637,7 +651,20 @@ function computeAll() {
   const charge = Math.max(0, parseFloat(document.getElementById('chargePerSqft').value) || 0);
   const rates = crew.map((_, i) => Math.max(0, parseFloat((document.getElementById('cr' + i) || {}).value) || crew[i]));
   const crewTotal = rates.reduce((a, b) => a + b, 0);
-  const bid = sqft * charge;
+  const jfChargePerLF = Math.max(0, parseFloat(document.getElementById('jfChargePerLF').value) || 0);
+  const borderLF = Math.max(0, parseFloat(document.getElementById('borderLF').value) || 0);
+  const borderChargePerLF = Math.max(0, parseFloat(document.getElementById('borderChargePerLF').value) || 0);
+  const hydroChargePSF = Math.max(0, parseFloat(document.getElementById('hydroChargePSF').value) || 0);
+  const mppCharge = Math.max(0, parseFloat(document.getElementById('mppCharge').value) || 0);
+  const repairsCharge = Math.max(0, parseFloat(document.getElementById('repairsCharge').value) || 0);
+  const jfLFBid = Math.max(0, parseFloat(document.getElementById('jfLengthSetup').value) || 0);
+  const bidPolish = sqft * charge;
+  const bidJointFill = jfLFBid * jfChargePerLF;
+  const bidBorders = borderLF * borderChargePerLF;
+  const bidHydro = sqft * hydroChargePSF;
+  const bidMPP = mppCharge;
+  const bidRepairs = repairsCharge;
+  const bid = bidPolish + bidJointFill + bidBorders + bidHydro + bidMPP + bidRepairs;
 
   // Per-item calculations
   const items = {};
@@ -745,7 +772,7 @@ function computeAll() {
   const netMarginPct = bid > 0 ? (netProfit / bid * 100) : 0;
 
   return {
-    sqft, charge, bid, rates, crewTotal,
+    sqft, charge, bid, bidPolish, bidJointFill, bidBorders, bidHydro, bidMPP, bidRepairs, rates, crewTotal,
     items, chemSubtotal, toolSubtotal, otherTotal, otherCosts, jfCost, totalMatCost,
     machIdx, machName, totalMachHours, pipelineDuration, runtimePerMach, prodHoursPerDay,
     calendarDays, calendarHours, recCrew, manHours, laborCost,
@@ -904,8 +931,13 @@ function buildOtherTable() {
 function updateDisplay(r) {
   // Project bid
   document.getElementById('projectBid').textContent = fmt(r.bid);
-  document.getElementById('bidSqft').textContent = r.sqft.toLocaleString();
-  document.getElementById('bidRate').textContent = r.charge.toFixed(2);
+  let bidLinesHtml = '<div class="bid-line"><span>Polish</span><span>' + fmt(r.bidPolish) + '</span></div>';
+  if (r.bidJointFill > 0) bidLinesHtml += '<div class="bid-line"><span>Joint Fill</span><span>' + fmt(r.bidJointFill) + '</span></div>';
+  if (r.bidBorders > 0) bidLinesHtml += '<div class="bid-line"><span>Borders</span><span>' + fmt(r.bidBorders) + '</span></div>';
+  if (r.bidHydro > 0) bidLinesHtml += '<div class="bid-line"><span>Hydro Polish</span><span>' + fmt(r.bidHydro) + '</span></div>';
+  if (r.bidMPP > 0) bidLinesHtml += '<div class="bid-line"><span>Match Patch Pro</span><span>' + fmt(r.bidMPP) + '</span></div>';
+  if (r.bidRepairs > 0) bidLinesHtml += '<div class="bid-line"><span>Repairs/Upgrades</span><span>' + fmt(r.bidRepairs) + '</span></div>';
+  document.getElementById('bidLines').innerHTML = bidLinesHtml;
 
   // Per-item displays (chemicals + tools tables + order table)
   allItems.forEach(item => {
@@ -1186,6 +1218,12 @@ function getProjectState() {
     jfDepth: document.getElementById('jfDepth').value,
     jfWaste: document.getElementById('jfWaste').value,
     jfCostPerGal: document.getElementById('jfCostPerGal').value,
+    jfChargePerLF: document.getElementById('jfChargePerLF').value,
+    borderLF: document.getElementById('borderLF').value,
+    borderChargePerLF: document.getElementById('borderChargePerLF').value,
+    hydroChargePSF: document.getElementById('hydroChargePSF').value,
+    mppCharge: document.getElementById('mppCharge').value,
+    repairsCharge: document.getElementById('repairsCharge').value,
     laborRates: JSON.parse(JSON.stringify(laborRates)),
     toolDivisors: {...toolDivisors},
     savedAt: new Date().toISOString(),
@@ -1213,6 +1251,12 @@ function loadProjectState(data) {
   if (data.jfDepth) document.getElementById('jfDepth').value = data.jfDepth;
   if (data.jfWaste) document.getElementById('jfWaste').value = data.jfWaste;
   if (data.jfCostPerGal) document.getElementById('jfCostPerGal').value = data.jfCostPerGal;
+  if (data.jfChargePerLF) document.getElementById('jfChargePerLF').value = data.jfChargePerLF;
+  if (data.borderLF) document.getElementById('borderLF').value = data.borderLF;
+  if (data.borderChargePerLF) document.getElementById('borderChargePerLF').value = data.borderChargePerLF;
+  if (data.hydroChargePSF) document.getElementById('hydroChargePSF').value = data.hydroChargePSF;
+  if (data.mppCharge) document.getElementById('mppCharge').value = data.mppCharge;
+  if (data.repairsCharge) document.getElementById('repairsCharge').value = data.repairsCharge;
   if (data.laborRates) Object.keys(data.laborRates).forEach(id => { laborRates[id] = [...data.laborRates[id]]; });
   if (data.toolDivisors) Object.assign(toolDivisors, data.toolDivisors);
   buildChemTable(); buildToolsTable(); buildOrderTable(); buildOtherTable(); buildVariableInputs();
